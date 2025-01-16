@@ -1,12 +1,11 @@
 import { Tabs } from "expo-router";
 import React from "react";
-import { Platform, Text, View } from "react-native";
+import { Platform } from "react-native";
 
 import { HapticTab } from "@/components/HapticTab";
 import TabBarBackground from "@/components/ui/TabBarBackground";
 import { Colors } from "@/constants/Colors";
 import { useColorScheme } from "@/hooks/useColorScheme";
-// import { Ionicons } from "@expo/vector-icons";
 
 const TABS = [
   { name: "bin", title: "Lixeira", icon: "trash-bin" },
