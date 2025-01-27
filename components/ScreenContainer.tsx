@@ -1,13 +1,18 @@
-import { StyleSheet, Text, View } from "react-native";
+import { StyleProp, StyleSheet, Text, View, ViewStyle } from "react-native";
 
 interface Props {
   title?: string;
   children?: React.ReactNode;
+  containerStyle?: StyleProp<ViewStyle>;
 }
 
-export default function ScreenContainer({ title, children }: Props) {
+export default function ScreenContainer({
+  title,
+  children,
+  containerStyle,
+}: Props) {
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, containerStyle]}>
       {title ? <Text style={styles.title}>{title}</Text> : null}
       {children}
     </View>
@@ -19,6 +24,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "white",
     padding: 32,
+    paddingBottom: 0,
   },
   title: {
     fontSize: 40,
