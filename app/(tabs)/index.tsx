@@ -1,10 +1,29 @@
+import AudioNote from "@/components/AudioNote";
 import ScreenContainer from "@/components/ScreenContainer";
 import Separator from "@/components/Separator";
 import TextNote from "@/components/TextNote";
+import ImageNote from "@/components/ImageNote";
 import { StyleSheet, FlatList, View, SectionList } from "react-native";
 
 function makeNote(title: string, content: string) {
   return {
+    type: "text" as const,
+    title,
+    content,
+  };
+}
+
+function makeAudio(title: string, content: string) {
+  return {
+    type: "audio" as const,
+    title,
+    content,
+  };
+}
+
+function makeImage(title: string, content: string) {
+  return {
+    type: "image" as const,
     title,
     content,
   };
@@ -18,6 +37,8 @@ const DATA = [
         "Título",
         "Lorem ipsum aljbfn osaijdbf sbdofbs odfosbid fbsoidb foisb doifbso dfisdfbisodifbos idbfobsodfb iosdbfosbdoif bsdiobfsiodbnf oisbdfoib sdofb os dbfosbdbfos dbiofbsdoib foisbdfoib soibdfiobsd ofbiaiorubeloçiquhb fçpoqaeiur hfblaoeuirbfglaoeiubrflçiou baçlroiufbg oiruebwçgfaoebiug çoaeibu rgfçoaihbuerfgioçbaeoirbtfgçaeorpihgt OÇLA´~IKRH TGFPÇOAEHRÇIOTH OIWeh ",
       ),
+      makeAudio("Audio", "2:43"),
+      makeImage("Imagem", "https://picsum.photos/200/300"),
     ],
   },
   {
@@ -39,6 +60,12 @@ const sections = DATA.map(({ folder, notes }) => ({
   data: notes,
 }));
 
+const COMPONENT_TYPES = {
+  text: TextNote,
+  audio: AudioNote,
+  image: ImageNote,
+}
+
 export default function NotesScreen() {
   return (
     <ScreenContainer
@@ -54,7 +81,8 @@ export default function NotesScreen() {
         SectionSeparatorComponent={EmptySeparator}
         ItemSeparatorComponent={EmptySeparator}
         renderItem={({ item }) => {
-          return <TextNote {...item} />;
+          const Component = COMPONENT_TYPES[item.type];
+          return <Component {...item} />;
         }}
       />
     </ScreenContainer>

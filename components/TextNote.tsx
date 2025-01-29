@@ -8,7 +8,8 @@ interface Props {
 
 export default function TextNote({ title, content }: Props) {
   return (
-    <NoteCard onPress={showAlert} title={title}>
+    <NoteCard onPress={showAlert}>
+      <Text style={styles.noteTitle}>{title}</Text>
       <Text numberOfLines={2} style={styles.content}>
         {content}
       </Text>
@@ -37,6 +38,12 @@ const showAlert = () =>
   );
 
 const styles = StyleSheet.create({
+  noteTitle: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: "#363636",
+    marginBottom: 8,
+  },
   content: {
     color: "#444",
     fontSize: 12,
