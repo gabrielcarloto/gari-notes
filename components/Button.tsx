@@ -11,6 +11,7 @@ interface Props {
   children?: string;
   secondary?: boolean;
   style?: StyleProp<ViewStyle>;
+  disabled?: boolean;
 }
 
 export default function Button({
@@ -18,13 +19,16 @@ export default function Button({
   children,
   secondary = false,
   style,
+  disabled,
 }: Props) {
   return (
     <TouchableOpacity
+      disabled={disabled}
       onPress={onPress}
       style={[
         styles.base,
         secondary ? styles.secondary : styles.primary,
+        disabled && styles.disabled,
         style,
       ]}
     >
@@ -50,6 +54,11 @@ const styles = StyleSheet.create({
     borderColor: "#363636",
     borderWidth: 1,
     borderStyle: "solid",
+  },
+  disabled: {
+    backgroundColor: "#AAA",
+    borderColor: "#AAA",
+    color: "#FAFAFA",
   },
 
   textOnPrimary: {

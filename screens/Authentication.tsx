@@ -3,10 +3,11 @@ import Input from "@/components/Input";
 import ScreenContainer from "@/components/ScreenContainer";
 import { Firebase } from "@/services/Firebase";
 import { useState } from "react";
-import { StyleSheet, View } from "react-native";
+import { Alert, StyleSheet, View } from "react-native";
 
 export default function AuthenticationScreen() {
   const [step, setStep] = useState<"signIn" | "signUp">("signIn");
+  const [loading, setLoading] = useState(false);
 
   const [userData, setUserData] = useState({
     name: "",
@@ -15,11 +16,27 @@ export default function AuthenticationScreen() {
   });
 
   async function createUser() {
-    await Firebase.signUp(userData.name, userData.email, userData.password);
+    setLoading(true);
+    const user = await Firebase.signUp(
+      userData.name,
+      userData.email,
+      userData.password,
+    );
+
+    if (!user) {
+      Alert.alert("ERRO!", "Não foi possível criar o usuário");
+    }
+    setLoading(true);
   }
 
   async function login() {
-    await Firebase.signIn(userData.email, userData.password);
+    setLoading(true);
+    const user = await Firebase.signIn(userData.email, userData.password);
+
+    if (!user) {
+      Alert.alert("ERRO!", "Credenciais inválidas");
+    }
+    setLoading(false);
   }
 
   function toggleStep() {
@@ -58,10 +75,16 @@ export default function AuthenticationScreen() {
         />
 
         <View style={styles.buttonsContainer}>
-          <Button style={styles.button} secondary onPress={toggleStep}>
+          <Button
+            style={styles.button}
+            disabled={loading}
+            secondary
+            onPress={toggleStep}
+          >
             {step === "signIn" ? "Registrar" : "Fazer login"}
           </Button>
           <Button
+            disabled={loading}
             style={styles.button}
             onPress={step === "signIn" ? login : createUser}
           >
