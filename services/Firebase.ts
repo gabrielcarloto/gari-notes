@@ -14,6 +14,7 @@ import {
   signOut,
   initializeAuth,
   onAuthStateChanged,
+  getAuth,
 } from "firebase/auth";
 
 import ReactNativeAsyncStorage from "@react-native-async-storage/async-storage";
@@ -95,7 +96,7 @@ export class Firebase {
 
   public static async signOut() {
     try {
-      await signOut(this.auth);
+      signOut(getAuth());
     } catch (e) {
       console.log("Failed to sign out: " + e);
     }
