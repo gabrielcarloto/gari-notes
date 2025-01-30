@@ -2,14 +2,26 @@ import { TextInput, View, Text, StyleSheet } from "react-native";
 
 interface Props {
   label: string;
+  value?: string;
   onChange?: (v: string) => void;
+  secureTextEntry?: boolean;
 }
 
-export default function Input({ onChange, label }: Props) {
+export default function Input({
+  onChange,
+  label,
+  value,
+  secureTextEntry,
+}: Props) {
   return (
     <View style={styles.wrapper}>
       <Text style={styles.label}>{label}</Text>
-      <TextInput style={styles.input} onChangeText={onChange} />
+      <TextInput
+        style={styles.input}
+        onChangeText={onChange}
+        value={value}
+        secureTextEntry={secureTextEntry}
+      />
     </View>
   );
 }

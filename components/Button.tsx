@@ -1,20 +1,32 @@
-import { StyleSheet, Text, TouchableOpacity } from "react-native";
+import {
+  StyleProp,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  ViewStyle,
+} from "react-native";
 
 interface Props {
   onPress?: () => void;
   children?: string;
   secondary?: boolean;
+  style?: StyleProp<ViewStyle>;
 }
 
 export default function Button({
   onPress,
   children,
   secondary = false,
+  style,
 }: Props) {
   return (
     <TouchableOpacity
       onPress={onPress}
-      style={[styles.base, secondary ? styles.secondary : styles.primary]}
+      style={[
+        styles.base,
+        secondary ? styles.secondary : styles.primary,
+        style,
+      ]}
     >
       <Text style={secondary ? styles.textOnSecondary : styles.textOnPrimary}>
         {children}

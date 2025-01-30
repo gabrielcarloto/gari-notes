@@ -3,17 +3,16 @@ import Input from "@/components/Input";
 import ScreenContainer from "@/components/ScreenContainer";
 import { Firebase } from "@/services/Firebase";
 import { useState } from "react";
-
-const initialUserData = {
-  name: "",
-  email: "",
-  password: "",
-};
+import { StyleSheet, View } from "react-native";
 
 export default function AuthenticationScreen() {
   const [step, setStep] = useState<"signIn" | "signUp">("signIn");
 
-  const [userData, setUserData] = useState(initialUserData);
+  const [userData, setUserData] = useState({
+    name: "",
+    email: "",
+    password: "",
+  });
 
   async function createUser() {
     await Firebase.signUp(userData.name, userData.email, userData.password);
@@ -25,35 +24,66 @@ export default function AuthenticationScreen() {
 
   function toggleStep() {
     setStep((step) => (step === "signIn" ? "signUp" : "signIn"));
-    setUserData(initialUserData);
+    setUserData({
+      name: "",
+      email: "",
+      password: "",
+    });
   }
 
   return (
     <ScreenContainer title={step === "signIn" ? "Login" : "Criar conta"}>
-      {step === "signUp" ? (
+      <View style={styles.formContainer}>
+        {step === "signUp" ? (
+          <Input
+            value={userData.name}
+            onChange={(name) => setUserData((prev) => ({ ...prev, name }))}
+            label="Nome"
+          />
+        ) : null}
+
         <Input
-          onChange={(name) => setUserData((prev) => ({ ...prev, name }))}
-          label="Nome"
+          value={userData.email}
+          onChange={(email) => setUserData((prev) => ({ ...prev, email }))}
+          label="Email"
         />
-      ) : null}
 
-      <Input
-        onChange={(email) => setUserData((prev) => ({ ...prev, email }))}
-        label="Email"
-      />
+        <Input
+          value={userData.password}
+          onChange={(password) =>
+            setUserData((prev) => ({ ...prev, password }))
+          }
+          label="Senha"
+          secureTextEntry
+        />
 
-      <Input
-        onChange={(password) => setUserData((prev) => ({ ...prev, password }))}
-        label="Senha"
-      />
-
-      <Button secondary onPress={toggleStep}>
-        {step === "signIn" ? "Criar conta" : "Login"}
-      </Button>
-
-      <Button onPress={step === "signIn" ? login : createUser}>
-        {step === "signIn" ? "Logar" : "Criar conta"}
-      </Button>
+        <View style={styles.buttonsContainer}>
+          <Button style={styles.button} secondary onPress={toggleStep}>
+            {step === "signIn" ? "Registrar" : "Fazer login"}
+          </Button>
+          <Button
+            style={styles.button}
+            onPress={step === "signIn" ? login : createUser}
+          >
+            {step === "signIn" ? "Entrar" : "Registrar"}
+          </Button>
+        </View>
+      </View>
     </ScreenContainer>
   );
 }
+
+const styles = StyleSheet.create({
+  formContainer: {
+    gap: 8,
+  },
+  buttonsContainer: {
+    gap: 8,
+    flexDirection: "row",
+    justifyContent: "flex-end",
+  },
+  button: {
+    height: 40,
+    width: 100,
+  },
+});
