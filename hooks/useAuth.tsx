@@ -4,6 +4,7 @@ import { createContext, useContext, useEffect, useState } from "react";
 
 interface AuthAPI {
   user: User | null;
+  refetch: () => void;
 }
 
 const AuthContext = createContext<AuthAPI | null>(null);
@@ -27,10 +28,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return Firebase.onAuthChanged(setUser);
   }, []);
 
+  function refetch() {
+    Firebase.getCurrentUser().then(setUser);
+  }
+
   return (
     <AuthContext.Provider
       value={{
         user,
+        refetch,
       }}
     >
       {children}

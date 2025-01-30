@@ -2,6 +2,7 @@ import {
   StyleProp,
   StyleSheet,
   Text,
+  TextStyle,
   TouchableOpacity,
   ViewStyle,
 } from "react-native";
@@ -11,6 +12,7 @@ interface Props {
   children?: string;
   secondary?: boolean;
   style?: StyleProp<ViewStyle>;
+  textStyle?: StyleProp<TextStyle>;
   disabled?: boolean;
 }
 
@@ -19,6 +21,7 @@ export default function Button({
   children,
   secondary = false,
   style,
+  textStyle,
   disabled,
 }: Props) {
   return (
@@ -32,7 +35,12 @@ export default function Button({
         style,
       ]}
     >
-      <Text style={secondary ? styles.textOnSecondary : styles.textOnPrimary}>
+      <Text
+        style={[
+          secondary ? styles.textOnSecondary : styles.textOnPrimary,
+          textStyle,
+        ]}
+      >
         {children}
       </Text>
     </TouchableOpacity>
@@ -44,6 +52,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 6,
     borderRadius: 4,
+    height: 35,
     alignItems: "center",
     justifyContent: "center",
   },

@@ -2,9 +2,12 @@ import { initializeApp } from "firebase/app";
 import {
   addDoc,
   collection,
+  doc,
   getDocs,
   getFirestore,
   query,
+  setDoc,
+  updateDoc,
   where,
 } from "firebase/firestore";
 import {
@@ -53,9 +56,10 @@ export class Firebase {
         password,
       );
 
-      const info: Omit<FirestoreUser, "is_premium"> = {
+      const info: FirestoreUser = {
         user_id: createdUser.user.uid,
         name,
+        is_premium: false,
       };
 
       await addDoc(this.collections.users, info);
@@ -107,7 +111,7 @@ export class Firebase {
 
     if (!user) return null;
 
-    const userData = await this.getUserData(user.uid);
+    const userData = await this.getUserData();
 
     if (!userData) throw new Error("Could not get user info");
 
@@ -118,14 +122,23 @@ export class Firebase {
     };
   }
 
-  private static async getUserData(
-    userId: string,
-  ): Promise<Omit<User, "email" | "id"> | null> {
-    const q = query(this.collections.users, where("user_id", "==", userId));
+  private static async queryCurrentUser() {
+    const q = query(
+      this.collections.users,
+      where("user_id", "==", this.auth.currentUser?.uid),
+    );
 
     const snapshot = await getDocs(q);
 
-    const userInfo = snapshot.docs[0].data() as FirestoreUser;
+    return snapshot.docs[0];
+  }
+
+  private static async getUserData(): Promise<Omit<
+    User,
+    "email" | "id"
+  > | null> {
+    const userInfoDoc = await this.queryCurrentUser();
+    const userInfo = userInfoDoc.data() as FirestoreUser;
 
     return {
       name: userInfo.name,
@@ -138,5 +151,24 @@ export class Firebase {
       if (!user) listener(null);
       this.getCurrentUser().then(listener);
     });
+  }
+
+  public static async updateUser(info: Partial<Omit<User, "id" | "email">>) {
+    try {
+      const updateInfo: Partial<Omit<FirestoreUser, "user_id">> = {
+        is_premium: info.isPremium,
+        name: info.name,
+      };
+
+      const userInfoDoc = await this.queryCurrentUser();
+      const d = doc(this.db, "users", userInfoDoc.id);
+
+      await updateDoc(d, JSON.parse(JSON.stringify(updateInfo)));
+
+      return true;
+    } catch (e) {
+      console.log("Failed to update user: ", e);
+      return false;
+    }
   }
 }
