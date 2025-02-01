@@ -1,5 +1,5 @@
+import { UserService } from "@/services/UserService";
 import { User } from "@/types/User";
-import { Firebase } from "../services/Firebase";
 import { createContext, useContext, useEffect, useState } from "react";
 
 interface AuthAPI {
@@ -25,11 +25,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
-    return Firebase.onAuthChanged(setUser);
+    return UserService.onAuthChanged(setUser);
   }, []);
 
   function refetch() {
-    Firebase.getCurrentUser().then(setUser);
+    UserService.getCurrentUser().then(setUser);
   }
 
   return (

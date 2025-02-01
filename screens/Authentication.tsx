@@ -1,7 +1,7 @@
 import Button from "@/components/Button";
 import Input from "@/components/Input";
 import ScreenContainer from "@/components/ScreenContainer";
-import { Firebase } from "@/services/Firebase";
+import { UserService } from "@/services/UserService";
 import { useState } from "react";
 import { Alert, StyleSheet, View } from "react-native";
 
@@ -17,7 +17,7 @@ export default function AuthenticationScreen() {
 
   async function createUser() {
     setLoading(true);
-    const user = await Firebase.signUp(
+    const user = await UserService.signUp(
       userData.name,
       userData.email,
       userData.password,
@@ -31,7 +31,7 @@ export default function AuthenticationScreen() {
 
   async function login() {
     setLoading(true);
-    const user = await Firebase.signIn(userData.email, userData.password);
+    const user = await UserService.signIn(userData.email, userData.password);
 
     if (!user) {
       Alert.alert("ERRO!", "Credenciais inválidas");

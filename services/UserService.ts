@@ -1,48 +1,28 @@
-import { initializeApp } from "firebase/app";
+import { app, collections, db } from "@/firebaseConfig";
+import {
+  createUserWithEmailAndPassword,
+  getAuth,
+  getReactNativePersistence,
+  initializeAuth,
+  signInWithEmailAndPassword,
+  signOut,
+  onAuthStateChanged,
+} from "firebase/auth";
+import ReactNativeAsyncStorage from "@react-native-async-storage/async-storage";
+import { FirestoreUser, User } from "@/types/User";
 import {
   addDoc,
-  collection,
   doc,
   getDocs,
-  getFirestore,
   query,
-  setDoc,
   updateDoc,
   where,
 } from "firebase/firestore";
-import {
-  getReactNativePersistence,
-  createUserWithEmailAndPassword,
-  signInWithEmailAndPassword,
-  signOut,
-  initializeAuth,
-  onAuthStateChanged,
-  getAuth,
-} from "firebase/auth";
 
-import ReactNativeAsyncStorage from "@react-native-async-storage/async-storage";
-import { FirestoreUser, User } from "@/types/User";
-
-export class Firebase {
-  private static config = {
-    apiKey: process.env.EXPO_PUBLIC_FIREBASE_API_KEY,
-    authDomain: "gari-notes-6a170.firebaseapp.com",
-    projectId: "gari-notes-6a170",
-    storageBucket: "gari-notes-6a170.firebasestorage.app",
-    messagingSenderId: "440213330944",
-    appId: "1:440213330944:web:6b0225c271358667a70ce5",
-  } as const;
-
-  private static app = initializeApp(this.config);
-
-  private static db = getFirestore(this.app);
-  private static auth = initializeAuth(this.app, {
+export class UserService {
+  private static auth = initializeAuth(app, {
     persistence: getReactNativePersistence(ReactNativeAsyncStorage),
   });
-
-  private static collections = {
-    users: collection(this.db, "users"),
-  } as const;
 
   public static async signUp(
     name: string,
@@ -62,7 +42,7 @@ export class Firebase {
         is_premium: false,
       };
 
-      await addDoc(this.collections.users, info);
+      await addDoc(collections.users, info);
 
       return {
         id: createdUser.user.uid,
@@ -82,8 +62,7 @@ export class Firebase {
   ): Promise<User | null> {
     try {
       const user = await signInWithEmailAndPassword(this.auth, email, password);
-
-      const userInfo = await this.getUserData(user.user.uid);
+      const userInfo = await this.getUserData();
 
       if (!userInfo) throw new Error("Could not get user info");
 
@@ -122,11 +101,44 @@ export class Firebase {
     };
   }
 
+  public static onAuthChanged(listener: (u: User | null) => void) {
+    return onAuthStateChanged(this.auth, (user) => {
+      if (!user) listener(null);
+      this.getCurrentUser().then(listener);
+    });
+  }
+
+  public static async updateUser(info: Partial<Omit<User, "id" | "email">>) {
+    try {
+      const updateInfo: Partial<Omit<FirestoreUser, "user_id">> = {
+        is_premium: info.isPremium,
+        name: info.name,
+      };
+
+      const userInfoDoc = await this.queryCurrentUser();
+      const d = doc(db, "users", userInfoDoc.id);
+
+      await updateDoc(d, JSON.parse(JSON.stringify(updateInfo)));
+
+      return true;
+    } catch (e) {
+      console.log("Failed to update user: ", e);
+      return false;
+    }
+  }
+
+  public static getCurrentUserId() {
+    return this.auth.currentUser?.uid;
+  }
+
+  public static userConstraint = where(
+    "user_id",
+    "==",
+    this.auth.currentUser?.uid,
+  );
+
   private static async queryCurrentUser() {
-    const q = query(
-      this.collections.users,
-      where("user_id", "==", this.auth.currentUser?.uid),
-    );
+    const q = query(collections.users, this.userConstraint);
 
     const snapshot = await getDocs(q);
 
@@ -144,31 +156,5 @@ export class Firebase {
       name: userInfo.name,
       isPremium: userInfo.is_premium,
     };
-  }
-
-  public static onAuthChanged(listener: (u: User | null) => void) {
-    return onAuthStateChanged(this.auth, (user) => {
-      if (!user) listener(null);
-      this.getCurrentUser().then(listener);
-    });
-  }
-
-  public static async updateUser(info: Partial<Omit<User, "id" | "email">>) {
-    try {
-      const updateInfo: Partial<Omit<FirestoreUser, "user_id">> = {
-        is_premium: info.isPremium,
-        name: info.name,
-      };
-
-      const userInfoDoc = await this.queryCurrentUser();
-      const d = doc(this.db, "users", userInfoDoc.id);
-
-      await updateDoc(d, JSON.parse(JSON.stringify(updateInfo)));
-
-      return true;
-    } catch (e) {
-      console.log("Failed to update user: ", e);
-      return false;
-    }
   }
 }

@@ -1,12 +1,13 @@
-import { StyleSheet, View, Text } from "react-native";
+import { StyleSheet, View, Text, StyleProp, ViewStyle } from "react-native";
 
 interface Props {
   label?: string;
+  style?: StyleProp<ViewStyle>;
 }
 
-export default function Separator({ label }: Props) {
+export default function Separator({ label, style }: Props) {
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, style]}>
       <View style={styles.line} />
       {label ? <Text style={styles.label}>{label}</Text> : null}
     </View>

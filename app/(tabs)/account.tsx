@@ -3,7 +3,7 @@ import Input from "@/components/Input";
 import ScreenContainer from "@/components/ScreenContainer";
 import useAuth from "@/hooks/useAuth";
 import AuthenticationScreen from "@/screens/Authentication";
-import { Firebase } from "@/services/Firebase";
+import { UserService } from "@/services/UserService";
 import { useEffect, useState } from "react";
 import { Alert, StyleSheet, Text, View } from "react-native";
 
@@ -21,7 +21,7 @@ export default function AccountScreen() {
           <Input label="Nome" value={userName} onChange={setUserName} />
           <Button
             onPress={() =>
-              Firebase.updateUser({ name: userName }).then((res) => {
+              UserService.updateUser({ name: userName }).then((res) => {
                 if (!res) {
                   setUserName(user.name);
                   return Alert.alert(
@@ -57,7 +57,9 @@ export default function AccountScreen() {
             </Button>
 
             <Button
-              onPress={() => Firebase.signOut().then(() => setEditing(false))}
+              onPress={() =>
+                UserService.signOut().then(() => setEditing(false))
+              }
               style={{ flex: 1 }}
             >
               Sair
@@ -67,7 +69,7 @@ export default function AccountScreen() {
           {!user.isPremium && (
             <Button
               onPress={() =>
-                Firebase.updateUser({ isPremium: true }).then(refetch)
+                UserService.updateUser({ isPremium: true }).then(refetch)
               }
               style={styles.premiumButton}
               textStyle={styles.premiumButtonText}
