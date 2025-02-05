@@ -68,7 +68,7 @@ export class NoteService {
       const docs = await this.query(where("type", "!=", "task"));
 
       return docs.toNotes().map((note) => {
-        const genericNote: TextNote | ImageNote | AudioNote = {
+        const genericNote: GenericNote = {
           title: note.title,
           type: note.type as any,
           content: note.content,
@@ -119,6 +119,28 @@ export class NoteService {
       return { id: doc.id, name: name };
     } catch (e) {
       console.log("Failed to create folder: ", e);
+      return null;
+    }
+  }
+
+  public static async createTextNote(
+    note: Omit<TextNote, "id">,
+  ): Promise<TextNote | null> {
+    try {
+      const firestoreNote: Omit<FirestoreNote, "id"> = {
+        user_id: UserService.getCurrentUserId() as string,
+        title: note.title,
+        folder: note.folder,
+        trash: note.isInTrash,
+        type: "text",
+        content: note.content,
+      };
+
+      const doc = await addDoc(collections.notes, firestoreNote);
+
+      return { id: doc.id, ...note };
+    } catch (e) {
+      console.log("Failed to create text note: ", e);
       return null;
     }
   }

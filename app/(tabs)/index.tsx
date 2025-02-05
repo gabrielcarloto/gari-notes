@@ -14,66 +14,14 @@ import {
   Dimensions,
 } from "react-native";
 import { AddButton, AddButtonOption } from "@/components/AddButton";
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Button from "@/components/Button";
 import Input from "@/components/Input";
 import { NoteService } from "@/services/NoteService";
 import { router } from "expo-router";
-
-function makeNote(title: string, content: string) {
-  return {
-    type: "text" as const,
-    title,
-    content,
-  };
-}
-
-function makeAudio(title: string, content: string) {
-  return {
-    type: "audio" as const,
-    title,
-    content,
-  };
-}
-
-function makeImage(title: string, content: string) {
-  return {
-    type: "image" as const,
-    title,
-    content,
-  };
-}
-
-const DATA = [
-  {
-    folder: undefined,
-    notes: [
-      makeNote(
-        "Título",
-        "Lorem ipsum aljbfn osaijdbf sbdofbs odfosbid fbsoidb foisb doifbso dfisdfbisodifbos idbfobsodfb iosdbfosbdoif bsdiobfsiodbnf oisbdfoib sdofb os dbfosbdbfos dbiofbsdoib foisbdfoib soibdfiobsd ofbiaiorubeloçiquhb fçpoqaeiur hfblaoeuirbfglaoeiubrflçiou baçlroiufbg oiruebwçgfaoebiug çoaeibu rgfçoaihbuerfgioçbaeoirbtfgçaeorpihgt OÇLA´~IKRH TGFPÇOAEHRÇIOTH OIWeh ",
-      ),
-      makeAudio("Audio", "2:43"),
-      makeImage("Imagem", "https://picsum.photos/200/300"),
-    ],
-  },
-  {
-    folder: "Pasta 1",
-    notes: Array.from({ length: 6 }, () =>
-      makeNote("Nhau", "oi eu sou uma anotação top"),
-    ),
-  },
-  {
-    folder: "Pasta 2",
-    notes: Array.from({ length: 6 }, () =>
-      makeNote("Nhau", "oi eu sou uma anotação top da pasta 2"),
-    ),
-  },
-] as const;
-
-const sections = DATA.map(({ folder, notes }) => ({
-  title: folder,
-  data: notes,
-}));
+import { GenericNote } from "@/types/Note";
+import AuthGuard from "@/components/AuthGuard";
+import useAuth from "@/hooks/useAuth";
 
 const COMPONENT_TYPES = {
   text: TextNote,
@@ -83,15 +31,37 @@ const COMPONENT_TYPES = {
 
 const ADD_BUTTON_SIZE = 48 + 16;
 
-export default function NotesScreen() {
+function Screen() {
   const [showNewFolderDialog, setShowNewFolderDialog] = useState(false);
   const [newFolder, setNewFolder] = useState("");
 
+  const [notes, setNotes] = useState<GenericNote[]>([]);
+
+  useEffect(() => {
+    NoteService.allNotes().then(setNotes);
+  }, []);
+
+  const sections = useMemo(() => {
+    const groupedNotes = notes.reduce(
+      (sections, currentNote) => {
+        if (!sections[currentNote.folder]) {
+          sections[currentNote.folder] = [];
+        }
+
+        sections[currentNote.folder].push(currentNote);
+        return sections;
+      },
+      {} as Record<string, GenericNote[]>,
+    );
+
+    return Object.keys(groupedNotes).map((key) => ({
+      title: key,
+      data: groupedNotes[key],
+    }));
+  }, [notes]);
+
   return (
-    <ScreenContainer
-      title="Notas"
-      containerStyle={{ padding: 0, paddingTop: 32 }}
-    >
+    <>
       <SectionList
         sections={sections}
         contentContainerStyle={{ paddingLeft: 32, paddingRight: 32 }}
@@ -127,7 +97,6 @@ export default function NotesScreen() {
           onPress={() => router.push("/TextNoteScreen")}
         />
       </AddButton>
-
       <Modal
         transparent
         animationType="fade"
@@ -171,7 +140,7 @@ export default function NotesScreen() {
           </View>
         </View>
       </Modal>
-    </ScreenContainer>
+    </>
   );
 }
 
@@ -199,3 +168,16 @@ const styles = StyleSheet.create({
     borderStyle: "solid",
   },
 });
+
+export default function NotesScreen() {
+  return (
+    <ScreenContainer
+      title="Notas"
+      containerStyle={{ padding: 0, paddingTop: 32 }}
+    >
+      <AuthGuard>
+        <Screen />
+      </AuthGuard>
+    </ScreenContainer>
+  );
+}

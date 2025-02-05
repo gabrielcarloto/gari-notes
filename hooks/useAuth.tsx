@@ -5,6 +5,7 @@ import { createContext, useContext, useEffect, useState } from "react";
 interface AuthAPI {
   user: User | null;
   refetch: () => void;
+  loading: boolean;
 }
 
 const AuthContext = createContext<AuthAPI | null>(null);
@@ -23,9 +24,13 @@ export default function useAuth() {
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
-    return UserService.onAuthChanged(setUser);
+    return UserService.onAuthChanged((user) => {
+      setUser(user);
+      setLoading(false);
+    });
   }, []);
 
   function refetch() {
@@ -37,6 +42,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       value={{
         user,
         refetch,
+        loading,
       }}
     >
       {children}

@@ -7,13 +7,14 @@ import { Picker } from "@react-native-picker/picker";
 import Separator from "@/components/Separator";
 import { useNavigation } from "expo-router";
 import { NoteService } from "@/services/NoteService";
+import { Optional } from "@/types/utils";
 
 type GenericNoteData = Pick<Note, "isInTrash" | "folder"> & { title?: string };
 
-interface Props extends GenericNoteData {
+interface Props extends Optional<GenericNoteData> {
   children: React.ReactNode;
   onShare: (data: GenericNoteData) => void;
-  onSaveNote: (data: GenericNoteData) => boolean;
+  onSaveNote: (data: GenericNoteData) => Promise<boolean>;
   defaultTitle: string;
   saved: boolean;
 }
@@ -33,8 +34,8 @@ export default function NoteScreen({
 
   const [noteData, setNoteData] = useState<GenericNoteData>({
     title: title,
-    folder: folder,
-    isInTrash: isInTrash,
+    folder: folder ?? "",
+    isInTrash: isInTrash ?? false,
   });
 
   const { goBack } = useNavigation();
@@ -117,9 +118,7 @@ export default function NoteScreen({
 
         <Button
           onPress={() => {
-            if (onSaveNote(noteData)) {
-              setIsNoteSaved(true);
-            }
+            onSaveNote(noteData).then(setIsNoteSaved);
           }}
         >
           Salvar
