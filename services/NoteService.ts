@@ -18,7 +18,7 @@ import {
 } from "@/types/Note";
 
 export class NoteService {
-  public static async allFolders(): Promise<Folder[] | null> {
+  public static async allFolders(): Promise<Folder[]> {
     try {
       const q = query(collections.folders, UserService.userConstraint);
 

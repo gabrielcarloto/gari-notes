@@ -1,11 +1,12 @@
 import Button from "@/components/Button";
 import ScreenContainer from "@/components/ScreenContainer";
-import { Note } from "@/types/Note";
+import { Folder, Note } from "@/types/Note";
 import { useEffect, useState } from "react";
 import { Alert, BackHandler, StyleSheet, TextInput, View } from "react-native";
 import { Picker } from "@react-native-picker/picker";
 import Separator from "@/components/Separator";
 import { useNavigation } from "expo-router";
+import { NoteService } from "@/services/NoteService";
 
 type GenericNoteData = Pick<Note, "isInTrash" | "folder"> & { title?: string };
 
@@ -27,6 +28,7 @@ export default function NoteScreen({
   defaultTitle,
   children,
 }: Props) {
+  const [folders, setFolders] = useState<Folder[]>([]);
   const [isNoteSaved, setIsNoteSaved] = useState(saved);
 
   const [noteData, setNoteData] = useState<GenericNoteData>({
@@ -46,9 +48,15 @@ export default function NoteScreen({
             onPress: goBack,
           },
           {
-            text: "Cancelar",
+            text: "Voltar à nota",
+          },
+          {
+            text: "Salvar",
+            onPress: () => onSaveNote(noteData),
           },
         ]);
+      } else {
+        goBack();
       }
 
       return true;
@@ -56,6 +64,10 @@ export default function NoteScreen({
 
     return () => handler.remove();
   });
+
+  useEffect(() => {
+    NoteService.allFolders().then(setFolders);
+  }, []);
 
   return (
     <ScreenContainer containerStyle={{ paddingBottom: 32 }}>
@@ -71,10 +83,17 @@ export default function NoteScreen({
 
       <View style={styles.titleSeparator} />
 
-      <Picker onValueChange={(value) => console.log(value)} selectedValue="">
+      <Picker
+        selectedValue=""
+        onValueChange={(value) => {
+          setNoteData((prev) => ({ ...prev, folder: value }));
+          setIsNoteSaved(false);
+        }}
+      >
         <Picker.Item label="Selecione a pasta" value="" />
-        <Picker.Item label="pasta1" value="pasta1" />
-        <Picker.Item label="pasta2" value="pasta2" />
+        {folders.map((folder) => (
+          <Picker.Item key={folder.id} label={folder.name} value={folder.id} />
+        ))}
       </Picker>
 
       <Separator style={{ height: 1 }} />
