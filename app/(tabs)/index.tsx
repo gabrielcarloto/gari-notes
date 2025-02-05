@@ -3,9 +3,21 @@ import ScreenContainer from "@/components/ScreenContainer";
 import Separator from "@/components/Separator";
 import TextNote from "@/components/TextNote";
 import ImageNote from "@/components/ImageNote";
-import { View, SectionList, Alert, Modal, TextInput } from "react-native";
+import {
+  View,
+  SectionList,
+  Alert,
+  Modal,
+  TextInput,
+  Text,
+  StyleSheet,
+  Dimensions,
+} from "react-native";
 import { AddButton, AddButtonOption } from "@/components/AddButton";
 import { useState } from "react";
+import Button from "@/components/Button";
+import Input from "@/components/Input";
+import { NoteService } from "@/services/NoteService";
 
 function makeNote(title: string, content: string) {
   return {
@@ -103,16 +115,73 @@ export default function NotesScreen() {
       </AddButton>
 
       <Modal
+        transparent
+        animationType="fade"
         visible={showNewFolderDialog}
-        onDismiss={() => {
+        onRequestClose={() => {
           setShowNewFolderDialog(false);
           setNewFolder("");
         }}
       >
-        <TextInput onChangeText={setNewFolder} />
+        <View style={styles.modal}>
+          <View style={styles.dialog}>
+            <Input
+              onChange={setNewFolder}
+              value={newFolder}
+              label="Insira o nome da nova pasta"
+            />
+            <View style={{ flexDirection: "row", width: "100%", gap: 8 }}>
+              <Button
+                style={{ flex: 1 }}
+                secondary
+                onPress={() => setShowNewFolderDialog(false)}
+              >
+                Fechar
+              </Button>
+              <Button
+                style={{ flex: 1 }}
+                onPress={() =>
+                  NoteService.createFolder(newFolder).then((folder) => {
+                    if (!folder) {
+                      return Alert.alert("Ocorreu um erro!");
+                    }
+
+                    setNewFolder("");
+                    setShowNewFolderDialog(false);
+                  })
+                }
+              >
+                Salvar
+              </Button>
+            </View>
+          </View>
+        </View>
       </Modal>
     </ScreenContainer>
   );
 }
 
 const EmptySeparator = ({ height = 8 }) => <View style={{ height }} />;
+
+const styles = StyleSheet.create({
+  modal: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#363636AA",
+  },
+
+  dialog: {
+    backgroundColor: "white",
+    padding: 8,
+    gap: 8,
+
+    width: Dimensions.get("window").width * 0.95,
+  },
+
+  input: {
+    borderColor: "black",
+    borderWidth: 1,
+    borderStyle: "solid",
+  },
+});

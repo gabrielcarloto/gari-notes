@@ -131,11 +131,9 @@ export class UserService {
     return this.auth.currentUser?.uid;
   }
 
-  public static userConstraint = where(
-    "user_id",
-    "==",
-    this.auth.currentUser?.uid,
-  );
+  public static get userConstraint() {
+    return where("user_id", "==", this.getCurrentUserId());
+  }
 
   private static async queryCurrentUser() {
     const q = query(collections.users, this.userConstraint);
