@@ -13,6 +13,7 @@ type GenericNoteData = Pick<Note, "isInTrash" | "folder"> & { title?: string };
 
 interface Props extends Optional<GenericNoteData> {
   children: React.ReactNode;
+  saveNoteButtonText?: string;
   onShare: (data: GenericNoteData) => void;
   onSaveNote: (data: GenericNoteData) => Promise<boolean>;
   defaultTitle: string;
@@ -28,6 +29,7 @@ export default function NoteScreen({
   onSaveNote,
   defaultTitle,
   children,
+  saveNoteButtonText,
 }: Props) {
   const [folders, setFolders] = useState<Folder[]>([]);
   const [isNoteSaved, setIsNoteSaved] = useState(saved);
@@ -121,7 +123,7 @@ export default function NoteScreen({
             onSaveNote(noteData).then(setIsNoteSaved);
           }}
         >
-          Salvar
+          {saveNoteButtonText ?? "Salvar"}
         </Button>
       </View>
     </ScreenContainer>

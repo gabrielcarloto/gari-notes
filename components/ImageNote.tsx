@@ -1,6 +1,7 @@
-import { Alert, StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text } from "react-native";
 import NoteCard from "./NoteCard";
 import { Image } from "expo-image";
+import { Link } from "expo-router";
 
 interface Props {
   title: string;
@@ -9,32 +10,18 @@ interface Props {
 
 export default function ImageNote({ title, content }: Props) {
   return (
-    <NoteCard onPress={showAlert}>
-      <Text style={styles.noteTitle}>{title}</Text>
-      <Image source={content} style={styles.image}/>
-    </NoteCard>
+    <Link
+      href={{ pathname: "/ImageNoteScreen", params: { title, content } }}
+      asChild
+      push
+    >
+      <NoteCard>
+        <Text style={styles.noteTitle}>{title}</Text>
+        <Image source={content} style={styles.image}/>
+      </NoteCard>
+    </Link>
   );
 }
-
-const showAlert = () =>
-    Alert.alert(
-      "Alert Title",
-      "My Alert Msg",
-      [
-        {
-          text: "Cancel",
-          onPress: () => Alert.alert("Cancel Pressed"),
-          style: "cancel",
-        },
-      ],
-      {
-        cancelable: true,
-        onDismiss: () =>
-          Alert.alert(
-            "This alert was dismissed by tapping outside of the alert dialog.",
-          ),
-      },
-    );
 
 const styles = StyleSheet.create({
   noteTitle: {
