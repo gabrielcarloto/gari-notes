@@ -18,6 +18,7 @@ import { useState } from "react";
 import Button from "@/components/Button";
 import Input from "@/components/Input";
 import { NoteService } from "@/services/NoteService";
+import { router } from "expo-router";
 
 function makeNote(title: string, content: string) {
   return {
@@ -111,7 +112,20 @@ export default function NotesScreen() {
           onPress={() => setShowNewFolderDialog(true)}
         />
 
-        <AddButtonOption label="Pasta2" onPress={() => Alert.alert("oi")} />
+        <AddButtonOption
+          label="Áudio"
+          onPress={() => router.push("/AudioNoteScreen")}
+        />
+
+        <AddButtonOption
+          label="Foto"
+          onPress={() => router.push("/ImageNoteScreen")}
+        />
+
+        <AddButtonOption
+          label="Nota"
+          onPress={() => router.push("/TextNoteScreen")}
+        />
       </AddButton>
 
       <Modal
