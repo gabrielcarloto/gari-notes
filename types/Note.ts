@@ -15,6 +15,7 @@ export interface TextNote extends Note {
 
 export interface AudioNote extends Note {
   type: "audio";
+  duration: number
 }
 
 export interface ImageNote extends Note {

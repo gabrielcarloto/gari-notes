@@ -1,23 +1,15 @@
 import { StyleSheet, Text } from "react-native";
 import NoteCard from "./NoteCard";
 import { Link } from "expo-router";
+import { TextNote as TextNoteProps } from "@/types/Note";
 
-interface Props {
-  title: string;
-  content: string;
-}
-
-export default function TextNote({ title, content }: Props) {
+export default function TextNote(props: TextNoteProps) {
   return (
-    <Link
-      href={{ pathname: "/TextNoteScreen", params: { title } }}
-      asChild
-      push
-    >
+    <Link href={{ pathname: "/TextNoteScreen", params: props }} asChild push>
       <NoteCard>
-        <Text style={styles.noteTitle}>{title}</Text>
+        <Text style={styles.noteTitle}>{props.title}</Text>
         <Text numberOfLines={2} style={styles.content}>
-          {content}
+          {props.content}
         </Text>
       </NoteCard>
     </Link>
