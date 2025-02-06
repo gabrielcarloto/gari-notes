@@ -2,7 +2,14 @@ import Button from "@/components/Button";
 import ScreenContainer from "@/components/ScreenContainer";
 import { Folder, Note } from "@/types/Note";
 import { useEffect, useState } from "react";
-import { Alert, BackHandler, StyleSheet, TextInput, View } from "react-native";
+import {
+  Alert,
+  BackHandler,
+  StyleSheet,
+  TextInput,
+  ToastAndroid,
+  View,
+} from "react-native";
 import { Picker } from "@react-native-picker/picker";
 import Separator from "@/components/Separator";
 import { useNavigation } from "expo-router";
@@ -95,7 +102,11 @@ export default function NoteScreen({
       >
         <Picker.Item label="Selecione a pasta" value="" />
         {folders.map((folder) => (
-          <Picker.Item key={folder.id} label={folder.name} value={folder.id} />
+          <Picker.Item
+            key={folder.id}
+            label={folder.name}
+            value={folder.name}
+          />
         ))}
       </Picker>
 
@@ -108,7 +119,11 @@ export default function NoteScreen({
           <Button
             style={{ flex: 1 }}
             onPress={() => {
-              setNoteData((prev) => ({ ...prev, isInTrash: !prev.isInTrash }));
+              setNoteData((prev) => {
+                const newData = { ...prev, isInTrash: !prev.isInTrash };
+                onSaveNote(newData);
+                return newData;
+              });
             }}
           >
             {noteData.isInTrash ? "Restaurar" : "Excluir"}
@@ -120,7 +135,11 @@ export default function NoteScreen({
 
         <Button
           onPress={() => {
-            onSaveNote(noteData).then(setIsNoteSaved);
+            onSaveNote(noteData).then((saved) => {
+              setIsNoteSaved(saved);
+              if (saved)
+                ToastAndroid.show("Salvo com sucesso", ToastAndroid.SHORT);
+            });
           }}
         >
           {saveNoteButtonText ?? "Salvar"}

@@ -14,11 +14,11 @@ import {
   Dimensions,
 } from "react-native";
 import { AddButton, AddButtonOption } from "@/components/AddButton";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import Button from "@/components/Button";
 import Input from "@/components/Input";
 import { NoteService } from "@/services/NoteService";
-import { router } from "expo-router";
+import { router, useFocusEffect } from "expo-router";
 import { GenericNote } from "@/types/Note";
 import AuthGuard from "@/components/AuthGuard";
 import useAuth from "@/hooks/useAuth";
@@ -37,9 +37,11 @@ function Screen() {
 
   const [notes, setNotes] = useState<GenericNote[]>([]);
 
-  useEffect(() => {
+  const getNotes = useCallback(() => {
     NoteService.allNotes().then(setNotes);
   }, []);
+
+  useFocusEffect(getNotes);
 
   const sections = useMemo(() => {
     const groupedNotes = notes.reduce(
@@ -54,10 +56,12 @@ function Screen() {
       {} as Record<string, GenericNote[]>,
     );
 
-    return Object.keys(groupedNotes).map((key) => ({
-      title: key,
-      data: groupedNotes[key],
-    }));
+    return Object.keys(groupedNotes)
+      .sort((keyA) => (keyA === "" ? -1 : 0))
+      .map((key) => ({
+        title: key === "" ? "Raiz" : key,
+        data: groupedNotes[key],
+      }));
   }, [notes]);
 
   return (

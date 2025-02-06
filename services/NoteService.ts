@@ -63,11 +63,15 @@ export class NoteService {
     }
   }
 
-  public static async allNotes() {
+  public static async allNotes(includeTrash?: boolean) {
     try {
       const docs = await this.query(where("type", "!=", "task"));
 
-      return docs.toNotes().map((note) => {
+      const filtered = includeTrash
+        ? docs.toNotes()
+        : docs.toNotes().filter((note) => !note.trash);
+
+      return filtered.map((note) => {
         const genericNote: GenericNote = {
           title: note.title,
           type: note.type as any,
