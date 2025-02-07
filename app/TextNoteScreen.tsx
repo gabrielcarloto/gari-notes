@@ -19,6 +19,7 @@ export default function TextNoteScreen() {
       <NoteScreen
         defaultTitle="Nota sem título"
         onShare={() => {}}
+        setSaved={setSaved}
         onSaveNote={async (genericData) => {
           const noteObject = {
             ...noteData,

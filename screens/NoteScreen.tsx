@@ -25,13 +25,15 @@ interface Props extends Optional<GenericNoteData> {
   onSaveNote: (data: GenericNoteData) => Promise<boolean>;
   defaultTitle: string;
   saved: boolean;
+  setSaved: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 export default function NoteScreen({
   title,
   folder,
   isInTrash,
-  saved,
+  saved: isNoteSaved,
+  setSaved: setIsNoteSaved,
   onShare,
   onSaveNote,
   defaultTitle,
@@ -39,7 +41,6 @@ export default function NoteScreen({
   saveNoteButtonText,
 }: Props) {
   const [folders, setFolders] = useState<Folder[]>([]);
-  const [isNoteSaved, setIsNoteSaved] = useState(saved);
 
   const [noteData, setNoteData] = useState<GenericNoteData>({
     title: title,

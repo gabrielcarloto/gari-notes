@@ -21,6 +21,9 @@ export default function ImageNoteScreen() {
   const [saved, setSaved] = useState(Boolean(params));
   const [image, setImage] = useState(params?.content);
   const [noteData, setNoteData] = useState<Optional<ImageNote>>(params ?? {});
+  const [showViewfinder, setShowViewfinder] = useState(
+    !Boolean(params?.content),
+  );
 
   return (
     <>
@@ -29,6 +32,7 @@ export default function ImageNoteScreen() {
         defaultTitle="Nota sem título"
         onShare={() => {}}
         saved={saved}
+        setSaved={setSaved}
         onSaveNote={async (genericData) => {
           const noteObject = {
             ...noteData,
@@ -45,10 +49,14 @@ export default function ImageNoteScreen() {
         }}
         {...params}
       >
-        {image ? (
-          <Image source={image} style={{ height: 200, width: "100%" }} />
+        {!showViewfinder ? (
+          <TouchableOpacity onPress={() => setShowViewfinder(true)}>
+            <Image source={image} style={{ height: 200, width: "100%" }} />
+          </TouchableOpacity>
         ) : (
           <Viewfinder
+            showCancelButton={Boolean(image)}
+            onDismiss={() => setShowViewfinder(false)}
             onTakePicture={(picture) => {
               if (!picture) return;
 
@@ -57,6 +65,7 @@ export default function ImageNoteScreen() {
                 content: "data:image/jpeg," + picture.base64,
               }));
 
+              setShowViewfinder(false);
               setImage(picture.uri);
               setSaved(false);
             }}
@@ -76,23 +85,25 @@ export default function ImageNoteScreen() {
 
 function Viewfinder({
   onTakePicture,
+  onDismiss,
+  showCancelButton,
 }: {
   onTakePicture: (v: { base64: string; uri: string } | null) => void;
+  onDismiss: () => void;
+  showCancelButton: boolean;
 }) {
   const ref = useRef<CameraView>(null);
   const [permission, requestPermission] = useCameraPermissions();
 
   if (!permission) {
-    // Camera permissions are still loading.
     return <View />;
   }
 
   if (!permission.granted) {
-    // Camera permissions are not granted yet.
     return (
       <View style={styles.container}>
         <Text style={styles.message}>
-          We need your permission to show the camera
+          Precisamos da sua permissão para acessar a câmera
         </Text>
         <Button onPress={requestPermission}>Conceder Permissão</Button>
       </View>
@@ -110,7 +121,14 @@ function Viewfinder({
     <View style={styles.container}>
       <CameraView style={styles.camera} ref={ref}>
         <View style={styles.buttonContainer}>
-          <Button onPress={takePicture}>Tirar Foto</Button>
+          {showCancelButton && (
+            <Button secondary style={{ flex: 1 }} onPress={onDismiss}>
+              Cancelar
+            </Button>
+          )}
+          <Button onPress={takePicture} style={{ flex: 1 }}>
+            Tirar Foto
+          </Button>
         </View>
       </CameraView>
     </View>
@@ -130,10 +148,12 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   buttonContainer: {
-    flex: 1,
+    marginTop: "auto",
+    alignItems: "flex-end",
     flexDirection: "row",
-    backgroundColor: "transparent",
-    margin: 64,
+    backgroundColor: "white",
+    gap: 8,
+    padding: 4,
   },
   button: {
     flex: 1,
