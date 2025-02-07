@@ -1,5 +1,6 @@
 import { initializeApp } from "firebase/app";
 import { collection, getFirestore } from "firebase/firestore";
+import { getStorage } from "firebase/storage";
 
 const config = {
   apiKey: process.env.EXPO_PUBLIC_FIREBASE_API_KEY,
@@ -19,3 +20,5 @@ export const collections = {
   folders: collection(db, "folders"),
   notes: collection(db, "notes"),
 } as const;
+
+export const storage = getStorage(app);

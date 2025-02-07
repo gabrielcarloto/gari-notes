@@ -135,10 +135,14 @@ export default function NoteScreen({
 
         <Button
           onPress={() => {
+            ToastAndroid.show("Salvando...", ToastAndroid.SHORT);
             onSaveNote(noteData).then((saved) => {
               setIsNoteSaved(saved);
-              if (saved)
+              if (saved) {
                 ToastAndroid.show("Salvo com sucesso", ToastAndroid.SHORT);
+              } else {
+                ToastAndroid.show("Ocorreu um erro", ToastAndroid.SHORT);
+              }
             });
           }}
         >

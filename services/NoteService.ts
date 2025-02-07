@@ -16,6 +16,9 @@ import {
   TaskNote,
   TextNote,
 } from "@/types/Note";
+import StorageService from "./StorageService";
+import { FileUtils } from "@/utils/FileUtils";
+import { v4 as uuidV4 } from "react-native-uuid/dist/v4";
 
 export class NoteService {
   public static async allFolders(): Promise<Folder[]> {
@@ -145,6 +148,40 @@ export class NoteService {
       return { id: doc.id, ...note };
     } catch (e) {
       console.log("Failed to create text note: ", e);
+      return null;
+    }
+  }
+
+  public static async createImageNote(
+    note: Omit<ImageNote, "id" | "image">,
+    imageBlob: Blob,
+  ): Promise<ImageNote | null> {
+    try {
+      const imageId = uuidV4();
+
+      const image = await StorageService.uploadFile(
+        imageBlob,
+        imageId + "/" + imageBlob.type.split("/")[1],
+      );
+
+      const firestoreNote: Omit<FirestoreNote, "id"> = {
+        user_id: UserService.getCurrentUserId() as string,
+        title: note.title,
+        folder: note.folder,
+        trash: note.isInTrash,
+        type: "image",
+        content: image,
+        description: note.description,
+      };
+
+      const doc = await addDoc(
+        collections.notes,
+        JSON.parse(JSON.stringify(firestoreNote)),
+      );
+
+      return { id: doc.id, ...note };
+    } catch (e) {
+      console.log("Failed to create image note: ", e);
       return null;
     }
   }
