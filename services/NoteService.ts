@@ -85,7 +85,9 @@ export class NoteService {
   }
 
   private static filterTrash(notes: FirestoreNote[], onlyTrashed: boolean) {
-    return notes.filter((note) => note.trash === onlyTrashed);
+    return notes.filter(
+      (note) => note.trash === onlyTrashed || (!onlyTrashed && !note.trash),
+    );
   }
 
   public static async allTasks() {
@@ -217,7 +219,7 @@ export class NoteService {
     return await this.createNote<ImageNote>(
       Object.assign(note, {
         type: "image",
-        content: this.getImagePath(image),
+        content: await this.getImagePath(image),
       }),
     );
   }
@@ -232,7 +234,7 @@ export class NoteService {
       return await this.updateNote<ImageNote>(
         Object.assign(note, {
           type: "image",
-          content: this.getImagePath(image),
+          content: await this.getImagePath(image),
         }),
       );
     }

@@ -29,6 +29,7 @@ export default function ImageNoteScreen() {
 
     NoteService.get(params.id).then((note) => {
       if (note) {
+        console.log(note);
         setNoteData(note as ImageNote);
         setImage(note.content);
       }
@@ -43,29 +44,25 @@ export default function ImageNoteScreen() {
         onShare={() => {}}
         saved={saved}
         setSaved={setSaved}
-        onSaveNote={async (genericData) => {
-          const noteObject = {
-            ...noteData,
-            ...genericData,
-          } as ImageNote;
-
-          const imageData = !image?.startsWith("file://")
+        onSaveNote={async (data) => {
+          const imageData = image?.startsWith("file://")
             ? await fetch(image!)
             : undefined;
 
           const note = noteData.id
             ? await NoteService.updateImageNote(
-                noteObject,
+                data as ImageNote,
                 await imageData?.blob(),
               )
             : await NoteService.createImageNote(
-                noteObject,
+                data as ImageNote,
                 await imageData!.blob(),
               );
 
           return Boolean(note);
         }}
-        {...params}
+        noteData={noteData}
+        setNoteData={setNoteData}
       >
         {!showViewfinder ? (
           <TouchableOpacity onPress={() => setShowViewfinder(true)}>

@@ -26,12 +26,11 @@ interface Props extends Optional<GenericNoteData> {
   defaultTitle: string;
   saved: boolean;
   setSaved: React.Dispatch<React.SetStateAction<boolean>>;
+  noteData: Partial<GenericNote>;
+  setNoteData: Partial<React.Dispatch<React.SetStateAction<GenericNote>>>;
 }
 
 export default function NoteScreen({
-  title,
-  folder,
-  isInTrash,
   saved: isNoteSaved,
   setSaved: setIsNoteSaved,
   onShare,
@@ -39,14 +38,10 @@ export default function NoteScreen({
   defaultTitle,
   children,
   saveNoteButtonText,
+  noteData,
+  setNoteData,
 }: Props) {
   const [folders, setFolders] = useState<Folder[]>([]);
-
-  const [noteData, setNoteData] = useState<GenericNoteData>({
-    title: title,
-    folder: folder ?? "",
-    isInTrash: isInTrash ?? false,
-  });
 
   const { goBack } = useNavigation();
 
@@ -63,7 +58,7 @@ export default function NoteScreen({
           },
           {
             text: "Salvar",
-            onPress: () => onSaveNote(noteData),
+            onPress: () => onSaveNote(),
           },
         ]);
       } else {
@@ -80,6 +75,18 @@ export default function NoteScreen({
     NoteService.allFolders().then(setFolders);
   }, []);
 
+  function handleSaveNote(data: typeof noteData) {
+    ToastAndroid.show("Salvando...", ToastAndroid.SHORT);
+    onSaveNote(data).then((saved) => {
+      setIsNoteSaved(saved);
+      if (saved) {
+        ToastAndroid.show("Salvo com sucesso", ToastAndroid.SHORT);
+      } else {
+        ToastAndroid.show("Ocorreu um erro", ToastAndroid.SHORT);
+      }
+    });
+  }
+
   return (
     <ScreenContainer containerStyle={{ paddingBottom: 32 }}>
       <TextInput
@@ -89,7 +96,10 @@ export default function NoteScreen({
           setNoteData((prev) => ({ ...prev, title: value }));
           setIsNoteSaved(false);
         }}
-        style={[styles.titleInput, !title?.length && { color: "#888" }]}
+        style={[
+          styles.titleInput,
+          !noteData.title?.length && { color: "#888" },
+        ]}
       />
 
       <View style={styles.titleSeparator} />
@@ -122,7 +132,7 @@ export default function NoteScreen({
             onPress={() => {
               setNoteData((prev) => {
                 const newData = { ...prev, isInTrash: !prev.isInTrash };
-                onSaveNote(newData);
+                handleSaveNote(newData);
                 return newData;
               });
             }}
@@ -134,19 +144,7 @@ export default function NoteScreen({
           </Button>
         </View>
 
-        <Button
-          onPress={() => {
-            ToastAndroid.show("Salvando...", ToastAndroid.SHORT);
-            onSaveNote(noteData).then((saved) => {
-              setIsNoteSaved(saved);
-              if (saved) {
-                ToastAndroid.show("Salvo com sucesso", ToastAndroid.SHORT);
-              } else {
-                ToastAndroid.show("Ocorreu um erro", ToastAndroid.SHORT);
-              }
-            });
-          }}
-        >
+        <Button onPress={() => handleSaveNote(noteData)}>
           {saveNoteButtonText ?? "Salvar"}
         </Button>
       </View>

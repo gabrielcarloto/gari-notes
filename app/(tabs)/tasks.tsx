@@ -1,10 +1,16 @@
 import AuthGuard from "@/components/AuthGuard";
 import ScreenContainer from "@/components/ScreenContainer";
 
-export default function TasksScreen() {
+function TasksScreen() {
+  return <></>;
+}
+
+export default function Screen() {
   return (
     <ScreenContainer title="Tarefas">
-      <AuthGuard></AuthGuard>
+      <AuthGuard>
+        <TasksScreen />
+      </AuthGuard>
     </ScreenContainer>
   );
 }

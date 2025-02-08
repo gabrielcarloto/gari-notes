@@ -33,7 +33,8 @@ export default function TextNoteScreen() {
           return Boolean(note);
         }}
         saved={saved}
-        {...noteData}
+        noteData={noteData}
+        setNoteData={setNoteData}
       >
         <TextInput
           placeholder="Escreva aqui :)"

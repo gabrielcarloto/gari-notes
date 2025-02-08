@@ -1,15 +1,10 @@
-import AudioNote from "@/components/AudioNote";
 import ScreenContainer from "@/components/ScreenContainer";
 import Separator from "@/components/Separator";
-import TextNote from "@/components/TextNote";
-import ImageNote from "@/components/ImageNote";
 import {
   View,
   SectionList,
   Alert,
   Modal,
-  TextInput,
-  Text,
   StyleSheet,
   Dimensions,
 } from "react-native";
@@ -21,17 +16,11 @@ import { NoteService } from "@/services/NoteService";
 import { router, useFocusEffect } from "expo-router";
 import { GenericNote } from "@/types/Note";
 import AuthGuard from "@/components/AuthGuard";
-import useAuth from "@/hooks/useAuth";
-
-const COMPONENT_TYPES = {
-  text: TextNote,
-  audio: AudioNote,
-  image: ImageNote,
-};
+import { COMPONENT_TYPES } from "@/utils/componentTypes";
 
 const ADD_BUTTON_SIZE = 48 + 16;
 
-function Screen() {
+function NotesScreen() {
   const [showNewFolderDialog, setShowNewFolderDialog] = useState(false);
   const [newFolder, setNewFolder] = useState("");
 
@@ -76,6 +65,7 @@ function Screen() {
         ItemSeparatorComponent={EmptySeparator}
         ListFooterComponent={() => <EmptySeparator height={ADD_BUTTON_SIZE} />}
         renderItem={({ item }) => {
+          // @ts-ignore
           const Component = COMPONENT_TYPES[item.type];
           return <Component {...item} />;
         }}
@@ -173,14 +163,14 @@ const styles = StyleSheet.create({
   },
 });
 
-export default function NotesScreen() {
+export default function Screen() {
   return (
     <ScreenContainer
       title="Notas"
       containerStyle={{ padding: 0, paddingTop: 32 }}
     >
       <AuthGuard>
-        <Screen />
+        <NotesScreen />
       </AuthGuard>
     </ScreenContainer>
   );

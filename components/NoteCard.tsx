@@ -1,4 +1,5 @@
-import { Text, StyleSheet, TouchableOpacity } from "react-native";
+import { StyleSheet, TouchableOpacity } from "react-native";
+import * as Haptics from "expo-haptics";
 
 interface Props {
   children?: React.ReactNode;
@@ -10,7 +11,12 @@ export default function NoteCard({ children, onPress, onLongPress }: Props) {
   return (
     <TouchableOpacity
       onPress={onPress}
-      onLongPress={onLongPress}
+      onLongPress={() => {
+        if (onLongPress) {
+          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+          onLongPress();
+        }
+      }}
       style={styles.card}
     >
       {children}
