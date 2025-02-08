@@ -8,22 +8,32 @@ import {
   Text,
   TouchableOpacity,
 } from "react-native";
-import { Image } from "expo-image";
+
 import Button from "@/components/Button";
-import { useRef, useState } from "react";
-import { CameraView, CameraType, useCameraPermissions } from "expo-camera";
+import { useEffect, useRef, useState } from "react";
+import { CameraView, useCameraPermissions } from "expo-camera";
 import { Optional } from "@/types/utils";
 import { NoteService } from "@/services/NoteService";
+import { Image } from "expo-image";
 
 export default function ImageNoteScreen() {
   // @ts-ignore - o tipo está correto
-  const params = useLocalSearchParams<ImageNote>();
+  const params = useLocalSearchParams<{ id: string }>();
   const [saved, setSaved] = useState(Boolean(params));
-  const [image, setImage] = useState(params?.content);
+  const [image, setImage] = useState<string>();
   const [noteData, setNoteData] = useState<Optional<ImageNote>>(params ?? {});
-  const [showViewfinder, setShowViewfinder] = useState(
-    !Boolean(params?.content),
-  );
+  const [showViewfinder, setShowViewfinder] = useState(!Boolean(noteData.id));
+
+  useEffect(() => {
+    if (!params.id) return;
+
+    NoteService.get(params.id).then((note) => {
+      if (note) {
+        setNoteData(note as ImageNote);
+        setImage(note.content);
+      }
+    });
+  }, [params.id]);
 
   return (
     <>
@@ -39,7 +49,7 @@ export default function ImageNoteScreen() {
             ...genericData,
           } as ImageNote;
 
-          const imageData = await fetch(image);
+          const imageData = await fetch(image!);
           const note = await NoteService.createImageNote(
             noteObject,
             await imageData.blob(),
@@ -51,19 +61,18 @@ export default function ImageNoteScreen() {
       >
         {!showViewfinder ? (
           <TouchableOpacity onPress={() => setShowViewfinder(true)}>
-            <Image source={image} style={{ height: 200, width: "100%" }} />
+            <Image
+              source={image}
+              style={{ height: 200, width: "100%" }}
+              cachePolicy={"memory-disk"}
+            />
           </TouchableOpacity>
         ) : (
           <Viewfinder
-            showCancelButton={Boolean(image)}
+            showCancelButton={"content" in noteData}
             onDismiss={() => setShowViewfinder(false)}
             onTakePicture={(picture) => {
               if (!picture) return;
-
-              setNoteData((prev) => ({
-                ...prev,
-                content: "data:image/jpeg," + picture.base64,
-              }));
 
               setShowViewfinder(false);
               setImage(picture.uri);
@@ -71,13 +80,18 @@ export default function ImageNoteScreen() {
             }}
           />
         )}
-        <TextInput
-          placeholder="Descrição"
-          onChangeText={(desc) => {
-            setNoteData((prev) => ({ ...prev, description: desc }));
-            setSaved(false);
-          }}
-        />
+        {!showViewfinder && (
+          <TextInput
+            placeholder="Escreva aqui :)"
+            value={noteData.description}
+            onChangeText={(value) => {
+              setNoteData((prev) => ({ ...prev, description: value }));
+              setSaved(false);
+            }}
+            multiline
+            textAlignVertical="top"
+          />
+        )}
       </NoteScreen>
     </>
   );
@@ -121,11 +135,11 @@ function Viewfinder({
     <View style={styles.container}>
       <CameraView style={styles.camera} ref={ref}>
         <View style={styles.buttonContainer}>
-          {showCancelButton && (
+          {showCancelButton ? (
             <Button secondary style={{ flex: 1 }} onPress={onDismiss}>
               Cancelar
             </Button>
-          )}
+          ) : null}
           <Button onPress={takePicture} style={{ flex: 1 }}>
             Tirar Foto
           </Button>
@@ -149,7 +163,6 @@ const styles = StyleSheet.create({
   },
   buttonContainer: {
     marginTop: "auto",
-    alignItems: "flex-end",
     flexDirection: "row",
     backgroundColor: "white",
     gap: 8,

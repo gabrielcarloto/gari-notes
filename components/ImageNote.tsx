@@ -2,22 +2,27 @@ import { StyleSheet, Text } from "react-native";
 import NoteCard from "./NoteCard";
 import { Image } from "expo-image";
 import { Link } from "expo-router";
+import { ImageNote as ImageNoteProps } from "@/types/Note";
 
-interface Props {
-  title: string;
-  content: string;
-}
-
-export default function ImageNote({ title, content }: Props) {
+export default function ImageNote(props: ImageNoteProps) {
   return (
     <Link
-      href={{ pathname: "/ImageNoteScreen", params: { title, content } }}
+      href={{
+        pathname: "/ImageNoteScreen",
+        params: {
+          id: props.id,
+        },
+      }}
       asChild
       push
     >
       <NoteCard>
-        <Text style={styles.noteTitle}>{title}</Text>
-        <Image source={content} style={styles.image}/>
+        <Text style={styles.noteTitle}>{props.title}</Text>
+        <Image
+          source={props.content}
+          style={styles.image}
+          cachePolicy={"memory-disk"}
+        />
       </NoteCard>
     </Link>
   );
