@@ -2,11 +2,12 @@ import { StyleSheet, Text } from "react-native";
 import NoteCard from "./NoteCard";
 import { Link } from "expo-router";
 import { TextNote as TextNoteProps } from "@/types/Note";
+import { NoteService } from "@/services/NoteService";
 
 export default function TextNote(props: TextNoteProps) {
   return (
     <Link href={{ pathname: "/TextNoteScreen", params: props }} asChild push>
-      <NoteCard>
+      <NoteCard onLongPress={() => NoteService.deleteNote(props.id)}>
         <Text style={styles.noteTitle}>{props.title}</Text>
         <Text numberOfLines={2} style={styles.content}>
           {props.content}

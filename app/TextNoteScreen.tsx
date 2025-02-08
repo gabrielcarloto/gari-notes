@@ -26,7 +26,10 @@ export default function TextNoteScreen() {
             ...genericData,
           } as TextNote;
 
-          const note = await NoteService.createTextNote(noteObject);
+          const note = noteData.id
+            ? await NoteService.updateTextNote(noteObject)
+            : await NoteService.createTextNote(noteObject);
+
           return Boolean(note);
         }}
         saved={saved}

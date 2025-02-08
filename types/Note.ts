@@ -7,15 +7,13 @@ export interface Note {
   content: string;
 }
 
-export type GenericNote = Note | TextNote | ImageNote | AudioNote | TaskNote;
-
 export interface TextNote extends Note {
   type: "text";
 }
 
 export interface AudioNote extends Note {
   type: "audio";
-  duration: number
+  duration: number;
 }
 
 export interface ImageNote extends Note {
@@ -27,6 +25,14 @@ export interface TaskNote extends Note {
   type: "task";
   completed: boolean;
 }
+
+type RemoveNoteProps<T extends Note> = Partial<Omit<T, keyof Note>>;
+
+export type GenericNote = Note &
+  RemoveNoteProps<TextNote> &
+  RemoveNoteProps<AudioNote> &
+  RemoveNoteProps<ImageNote> &
+  RemoveNoteProps<TaskNote>;
 
 export type Folder = { name: string; id: string };
 
@@ -45,4 +51,5 @@ export type FirestoreNote = {
   content: string;
   description?: string;
   completed?: boolean;
+  duration?: number;
 };

@@ -3,6 +3,7 @@ import NoteCard from "./NoteCard";
 import { Image } from "expo-image";
 import { Link } from "expo-router";
 import { ImageNote as ImageNoteProps } from "@/types/Note";
+import { NoteService } from "@/services/NoteService";
 
 export default function ImageNote(props: ImageNoteProps) {
   return (
@@ -16,13 +17,13 @@ export default function ImageNote(props: ImageNoteProps) {
       asChild
       push
     >
-      <NoteCard>
+      <NoteCard
+        onLongPress={() => {
+          NoteService.deleteNoteWithContent(props.id, props.content);
+        }}
+      >
         <Text style={styles.noteTitle}>{props.title}</Text>
-        <Image
-          source={props.content}
-          style={styles.image}
-          cachePolicy={"memory-disk"}
-        />
+        <Image source={props.content} style={styles.image} />
       </NoteCard>
     </Link>
   );

@@ -1,6 +1,6 @@
 import Button from "@/components/Button";
 import ScreenContainer from "@/components/ScreenContainer";
-import { Folder, Note } from "@/types/Note";
+import { Folder, GenericNote, Note } from "@/types/Note";
 import { useEffect, useState } from "react";
 import {
   Alert,

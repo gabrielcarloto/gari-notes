@@ -49,11 +49,19 @@ export default function ImageNoteScreen() {
             ...genericData,
           } as ImageNote;
 
-          const imageData = await fetch(image!);
-          const note = await NoteService.createImageNote(
-            noteObject,
-            await imageData.blob(),
-          );
+          const imageData = !image?.startsWith("file://")
+            ? await fetch(image!)
+            : undefined;
+
+          const note = noteData.id
+            ? await NoteService.updateImageNote(
+                noteObject,
+                await imageData?.blob(),
+              )
+            : await NoteService.createImageNote(
+                noteObject,
+                await imageData!.blob(),
+              );
 
           return Boolean(note);
         }}
@@ -61,11 +69,7 @@ export default function ImageNoteScreen() {
       >
         {!showViewfinder ? (
           <TouchableOpacity onPress={() => setShowViewfinder(true)}>
-            <Image
-              source={image}
-              style={{ height: 200, width: "100%" }}
-              cachePolicy={"memory-disk"}
-            />
+            <Image source={image} style={{ height: 200, width: "100%" }} />
           </TouchableOpacity>
         ) : (
           <Viewfinder

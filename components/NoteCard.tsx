@@ -3,11 +3,16 @@ import { Text, StyleSheet, TouchableOpacity } from "react-native";
 interface Props {
   children?: React.ReactNode;
   onPress?: () => void;
+  onLongPress?: () => void;
 }
 
-export default function NoteCard({ children, onPress }: Props) {
+export default function NoteCard({ children, onPress, onLongPress }: Props) {
   return (
-    <TouchableOpacity onPress={onPress} style={styles.card}>
+    <TouchableOpacity
+      onPress={onPress}
+      onLongPress={onLongPress}
+      style={styles.card}
+    >
       {children}
     </TouchableOpacity>
   );

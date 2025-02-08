@@ -1,12 +1,16 @@
 import { collections } from "@/firebaseConfig";
 import {
+  doc,
   addDoc,
+  DocumentData,
   documentId,
-  FieldPath,
   getDocs,
   query,
   QueryConstraint,
+  QueryDocumentSnapshot,
+  setDoc,
   where,
+  deleteDoc,
 } from "firebase/firestore";
 import { UserService } from "./UserService";
 import {
@@ -15,11 +19,11 @@ import {
   Folder,
   GenericNote,
   ImageNote,
+  Note,
   TaskNote,
   TextNote,
 } from "@/types/Note";
 import StorageService from "./StorageService";
-import { FileUtils } from "@/utils/FileUtils";
 import { v4 as uuidV4 } from "react-native-uuid/dist/v4";
 import invariant from "@/utils/invariant";
 import { Optional } from "@/types/utils";
@@ -44,26 +48,13 @@ export class NoteService {
     }
   }
 
-  public static async all(trash: boolean) {
+  public static async all(trash?: boolean) {
     try {
-      const docs = trash
-        ? await this.query(where("trash", "==", true))
-        : await this.query();
+      const docs = await this.query();
 
-      return docs.toNotes().map((note) => {
-        const genericNote: GenericNote = {
-          title: note.title,
-          type: note.type,
-          content: note.content as string,
-          description: note.description,
-          completed: note.completed,
-          folder: note.folder,
-          isInTrash: note.trash,
-          id: note.id,
-        };
-
-        return genericNote;
-      });
+      return this.filterTrash(docs.toNotes(), Boolean(trash)).map(
+        this.mapToNote,
+      );
     } catch (e) {
       console.log("Failed to get all notes: ", e);
       return [];
@@ -73,21 +64,7 @@ export class NoteService {
   public static async get(id: string) {
     try {
       const doc = await this.query(where(documentId(), "==", id));
-
-      return doc.toNotes().map((note) => {
-        const genericNote: GenericNote = {
-          title: note.title,
-          type: note.type,
-          content: note.content as string,
-          description: note.description,
-          completed: note.completed,
-          folder: note.folder,
-          isInTrash: note.trash,
-          id: note.id,
-        };
-
-        return genericNote;
-      })[0];
+      return doc.toNotes().map(this.mapToNote)[0];
     } catch (e) {
       console.log("Failed to get note: ", e);
       return null;
@@ -98,46 +75,23 @@ export class NoteService {
     try {
       const docs = await this.query(where("type", "!=", "task"));
 
-      const filtered = includeTrash
-        ? docs.toNotes()
-        : docs.toNotes().filter((note) => !note.trash);
-
-      return filtered.map((note) => {
-        const genericNote: GenericNote = {
-          title: note.title,
-          type: note.type as any,
-          content: note.content,
-          description: note.description,
-          folder: note.folder,
-          isInTrash: note.trash,
-          id: note.id,
-        };
-
-        return genericNote;
-      });
+      return this.filterTrash(docs.toNotes(), Boolean(includeTrash)).map(
+        this.mapToNote,
+      );
     } catch (e) {
       console.log("Failed to get all notes (notes.): ", e);
       return [];
     }
   }
 
+  private static filterTrash(notes: FirestoreNote[], onlyTrashed: boolean) {
+    return notes.filter((note) => note.trash === onlyTrashed);
+  }
+
   public static async allTasks() {
     try {
       const docs = await this.query(where("type", "==", "task"));
-
-      return docs.toNotes().map((note) => {
-        const genericNote: TaskNote = {
-          title: note.title,
-          type: note.type as any,
-          content: note.content,
-          folder: note.folder,
-          isInTrash: note.trash,
-          completed: note.completed as boolean,
-          id: note.id,
-        };
-
-        return genericNote;
-      });
+      return docs.toNotes().map(this.mapToNote) as TaskNote[];
     } catch (e) {
       console.log("Failed to get all tasks: ", e);
       return [];
@@ -158,24 +112,33 @@ export class NoteService {
     }
   }
 
+  private static mapToNote(firestoreNote: FirestoreNote): GenericNote {
+    return {
+      id: firestoreNote.id,
+      type: firestoreNote.type,
+      title: firestoreNote.title,
+      folder: firestoreNote.folder,
+      isInTrash: firestoreNote.trash,
+      content: firestoreNote.content,
+      description: firestoreNote.description,
+      completed: firestoreNote.completed,
+      duration: firestoreNote.duration,
+    };
+  }
+
   private static mapToFirestoreNote(note: Optional<GenericNote>) {
-    const firestoreNote: Optional<FirestoreNote> = {
+    const firestoreNote: Omit<FirestoreNote, "id"> & { id?: string } = {
       id: note.id,
       user_id: invariant(UserService.getCurrentUserId()),
       type: invariant(note.type),
       title: invariant(note.title),
       folder: note.folder ?? "",
       trash: note.isInTrash ?? false,
-      content: note.content,
-      // @ts-ignore
+      content: invariant(note.content),
       description: note.description,
-      // @ts-ignore
       completed: note.completed,
-      // @ts-ignore
       duration: note.duration,
     };
-
-    console.log(note.folder);
 
     Object.keys(firestoreNote).forEach(
       // @ts-ignore
@@ -185,50 +148,107 @@ export class NoteService {
     return firestoreNote;
   }
 
-  public static async createTextNote(
-    note: Omit<TextNote, "id">,
-  ): Promise<TextNote | null> {
+  private static async createNote<T extends Note = GenericNote>(
+    data: Omit<T, "id">,
+  ) {
     try {
-      const firestoreNote = this.mapToFirestoreNote(
-        Object.assign(note, { type: "text" }),
-      );
-
+      const firestoreNote = this.mapToFirestoreNote(data);
       const doc = await addDoc(collections.notes, firestoreNote);
-
-      return { id: doc.id, ...note };
+      return { id: doc.id, ...data };
     } catch (e) {
-      console.log("Failed to create text note: ", e);
+      console.log("Failed to create note: ", e);
       return null;
     }
   }
 
-  public static async createImageNote(
-    note: Omit<ImageNote, "id" | "image">,
-    imageBlob: Blob,
-  ): Promise<ImageNote | null> {
+  private static async updateNote<T extends Note = GenericNote>(data: T) {
     try {
-      const imageId = uuidV4();
+      const firestoreNote = this.mapToFirestoreNote(Object.assign(data));
+      delete firestoreNote.id;
 
-      const image = await StorageService.uploadFile(
-        imageBlob,
-        invariant(UserService.getCurrentUserId()) +
-          "/" +
-          imageId +
-          "." +
-          imageBlob.type.split("/")[1],
-      );
-
-      const firestoreNote = this.mapToFirestoreNote(
-        Object.assign(note, { type: "image", content: image }),
-      );
-
-      const doc = await addDoc(collections.notes, firestoreNote);
-
-      return { id: doc.id, ...note };
+      const docRef = doc(collections.notes, data.id);
+      await setDoc(docRef, firestoreNote);
+      return data;
     } catch (e) {
-      console.log("Failed to create image note: ", e);
+      console.log("Failed to update note: ", e);
       return null;
     }
+  }
+
+  public static async deleteNote(id: string) {
+    try {
+      const docRef = doc(collections.notes, id);
+      await deleteDoc(docRef);
+      return true;
+    } catch (e) {
+      console.log("Failed to delete note: ", e);
+      return false;
+    }
+  }
+
+  public static async deleteNoteWithContent(id: string, imageUrl: string) {
+    if (!StorageService.deleteFile(imageUrl)) return false;
+    return this.deleteNote(id);
+  }
+
+  public static async createTextNote(note: Omit<TextNote, "id">) {
+    return this.createNote<TextNote>(Object.assign(note, { type: "text" }));
+  }
+
+  public static async updateTextNote(note: TextNote) {
+    return this.updateNote<TextNote>(Object.assign(note, { type: "text" }));
+  }
+
+  private static async getImagePath(blob: Blob) {
+    const imageId = uuidV4();
+
+    const image = await StorageService.uploadFile(
+      blob,
+      imageId + "." + blob.type.split("/")[1],
+    );
+
+    return invariant(image);
+  }
+
+  public static async createImageNote(
+    note: Omit<ImageNote, "id" | "image">,
+    image: Blob,
+  ) {
+    return await this.createNote<ImageNote>(
+      Object.assign(note, {
+        type: "image",
+        content: this.getImagePath(image),
+      }),
+    );
+  }
+
+  public static async updateImageNote(
+    note: Omit<ImageNote, "image">,
+    image?: Blob,
+  ) {
+    if (image) {
+      StorageService.deleteFile(note.content);
+
+      return await this.updateNote<ImageNote>(
+        Object.assign(note, {
+          type: "image",
+          content: this.getImagePath(image),
+        }),
+      );
+    }
+
+    return await this.updateNote<ImageNote>(
+      Object.assign(note, {
+        type: "image",
+        content: note.content,
+      }),
+    );
+  }
+
+  private static docToFirestoreNote(
+    doc: QueryDocumentSnapshot<DocumentData, DocumentData>,
+  ) {
+    return { ...doc.data(), id: doc.id } as FirestoreNote;
   }
 
   private static async query(...constraints: QueryConstraint[]) {
@@ -241,10 +261,7 @@ export class NoteService {
 
     return {
       docs: snapshot.docs,
-      toNotes: () =>
-        snapshot.docs.map(
-          (doc) => ({ ...doc.data(), id: doc.id }) as FirestoreNote,
-        ),
+      toNotes: () => snapshot.docs.map(this.docToFirestoreNote),
     };
   }
 }
