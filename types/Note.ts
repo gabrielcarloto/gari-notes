@@ -24,12 +24,14 @@ export interface ImageNote extends Note {
 export interface TaskNote extends Note {
   type: "task";
   completed: boolean;
+  reminder?: Date;
 }
 
 type RemoveNoteProps<T extends Note> = Partial<Omit<T, keyof Note>>;
 
-export type GenericNote = Note &
-  RemoveNoteProps<TextNote> &
+export type GenericNote = Omit<Note, "type"> & {
+  type: string;
+} & RemoveNoteProps<TextNote> &
   RemoveNoteProps<AudioNote> &
   RemoveNoteProps<ImageNote> &
   RemoveNoteProps<TaskNote>;
@@ -52,4 +54,5 @@ export type FirestoreNote = {
   description?: string;
   completed?: boolean;
   duration?: number;
+  reminder?: Date;
 };

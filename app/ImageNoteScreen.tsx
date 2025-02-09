@@ -29,7 +29,6 @@ export default function ImageNoteScreen() {
 
     NoteService.get(params.id).then((note) => {
       if (note) {
-        console.log(note);
         setNoteData(note as ImageNote);
         setImage(note.content);
       }

@@ -33,7 +33,7 @@ function TasksScreen() {
       />
       <AddButton>
         <AddButtonOption
-          label="Pasta"
+          label="Projeto"
           onPress={() => setShowNewFolderDialog(true)}
         />
 
@@ -56,7 +56,7 @@ function TasksScreen() {
             <Input
               onChange={setNewFolder}
               value={newFolder}
-              label="Insira o nome da nova pasta"
+              label="Insira o nome do novo projeto"
             />
             <View style={{ flexDirection: "row", width: "100%", gap: 8 }}>
               <Button
@@ -92,7 +92,7 @@ function TasksScreen() {
 export default function Screen() {
   return (
     <ScreenContainer
-      title="Notas"
+      title="Tarefas"
       containerStyle={{ padding: 0, paddingTop: 32 }}
     >
       <AuthGuard>

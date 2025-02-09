@@ -21,13 +21,14 @@ type GenericNoteData = Pick<Note, "isInTrash" | "folder"> & { title?: string };
 interface Props extends Optional<GenericNoteData> {
   children: React.ReactNode;
   saveNoteButtonText?: string;
-  onShare: (data: GenericNoteData) => void;
-  onSaveNote: (data: GenericNoteData) => Promise<boolean>;
+  onShare: (data: Partial<GenericNoteData>) => void;
+  onSaveNote: (data: Partial<GenericNoteData>) => Promise<boolean>;
   defaultTitle: string;
   saved: boolean;
   setSaved: React.Dispatch<React.SetStateAction<boolean>>;
   noteData: Partial<GenericNote>;
-  setNoteData: Partial<React.Dispatch<React.SetStateAction<GenericNote>>>;
+  setNoteData: React.Dispatch<React.SetStateAction<GenericNote>>;
+  folderType?: "folder" | "project";
 }
 
 export default function NoteScreen({
@@ -40,6 +41,7 @@ export default function NoteScreen({
   saveNoteButtonText,
   noteData,
   setNoteData,
+  folderType = "folder",
 }: Props) {
   const [folders, setFolders] = useState<Folder[]>([]);
 
@@ -58,7 +60,7 @@ export default function NoteScreen({
           },
           {
             text: "Salvar",
-            onPress: () => onSaveNote(),
+            onPress: () => onSaveNote(noteData),
           },
         ]);
       } else {
@@ -77,14 +79,18 @@ export default function NoteScreen({
 
   function handleSaveNote(data: typeof noteData) {
     ToastAndroid.show("Salvando...", ToastAndroid.SHORT);
-    onSaveNote(data).then((saved) => {
-      setIsNoteSaved(saved);
-      if (saved) {
-        ToastAndroid.show("Salvo com sucesso", ToastAndroid.SHORT);
-      } else {
+    onSaveNote(data)
+      .then((saved) => {
+        setIsNoteSaved(saved);
+        if (saved) {
+          ToastAndroid.show("Salvo com sucesso", ToastAndroid.SHORT);
+        } else {
+          ToastAndroid.show("Ocorreu um erro", ToastAndroid.SHORT);
+        }
+      })
+      .catch(() => {
         ToastAndroid.show("Ocorreu um erro", ToastAndroid.SHORT);
-      }
-    });
+      });
   }
 
   return (
@@ -111,7 +117,12 @@ export default function NoteScreen({
           setIsNoteSaved(false);
         }}
       >
-        <Picker.Item label="Selecione a pasta" value="" />
+        <Picker.Item
+          label={
+            "Selecione " + (folderType === "folder" ? "a pasta" : "o projeto")
+          }
+          value=""
+        />
         {folders.map((folder) => (
           <Picker.Item
             key={folder.id}

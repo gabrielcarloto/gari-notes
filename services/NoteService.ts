@@ -125,6 +125,9 @@ export class NoteService {
       description: firestoreNote.description,
       completed: firestoreNote.completed,
       duration: firestoreNote.duration,
+      reminder: firestoreNote.reminder
+        ? new Date(firestoreNote.reminder)
+        : undefined,
     };
   }
 
@@ -140,19 +143,13 @@ export class NoteService {
       description: note.description,
       completed: note.completed,
       duration: note.duration,
+      reminder: note.reminder,
     };
 
-    Object.keys(firestoreNote).forEach(
-      // @ts-ignore
-      (k) => !firestoreNote[k] && delete firestoreNote[k],
-    );
-
-    return firestoreNote;
+    return JSON.parse(JSON.stringify(firestoreNote));
   }
 
-  private static async createNote<T extends Note = GenericNote>(
-    data: Omit<T, "id">,
-  ) {
+  private static async createNote<T extends Note>(data: Omit<T, "id">) {
     try {
       const firestoreNote = this.mapToFirestoreNote(data);
       const doc = await addDoc(collections.notes, firestoreNote);
@@ -163,7 +160,7 @@ export class NoteService {
     }
   }
 
-  private static async updateNote<T extends Note = GenericNote>(data: T) {
+  private static async updateNote<T extends Note>(data: T) {
     try {
       const firestoreNote = this.mapToFirestoreNote(Object.assign(data));
       delete firestoreNote.id;
@@ -199,6 +196,14 @@ export class NoteService {
 
   public static async updateTextNote(note: TextNote) {
     return this.updateNote<TextNote>(Object.assign(note, { type: "text" }));
+  }
+
+  public static async createTaskNote(note: Omit<TaskNote, "id">) {
+    return this.createNote<TaskNote>(Object.assign(note, { type: "task" }));
+  }
+
+  public static async updateTaskNote(note: TaskNote) {
+    return this.updateNote<TaskNote>(Object.assign(note, { type: "task" }));
   }
 
   private static async getObjectLink(blob: Blob) {

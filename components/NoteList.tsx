@@ -1,15 +1,17 @@
 import Separator from "@/components/Separator";
 import { View, SectionList, StyleProp, ViewStyle } from "react-native";
 import { useMemo } from "react";
-import { GenericNote } from "@/types/Note";
+import { GenericNote, Note } from "@/types/Note";
 import AudioNote from "@/components/AudioNote";
 import ImageNote from "@/components/ImageNote";
 import TextNote from "@/components/TextNote";
+import Task from "./Task";
 
 const COMPONENT_TYPES = {
   text: TextNote,
   audio: AudioNote,
   image: ImageNote,
+  task: Task,
 };
 
 interface Props {
@@ -56,8 +58,10 @@ export default function NoteList({
         ItemSeparatorComponent={EmptySeparator}
         ListFooterComponent={footerComponent}
         renderItem={({ item }) => {
+          const Component =
+            COMPONENT_TYPES[item.type as keyof typeof COMPONENT_TYPES];
+
           // @ts-ignore
-          const Component = COMPONENT_TYPES[item.type];
           return <Component {...item} />;
         }}
       />
