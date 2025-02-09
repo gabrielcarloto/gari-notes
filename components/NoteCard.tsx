@@ -1,5 +1,6 @@
 import { StyleSheet, TouchableOpacity } from "react-native";
 import * as Haptics from "expo-haptics";
+import { forwardRef } from "react";
 
 interface Props {
   children?: React.ReactNode;
@@ -7,7 +8,10 @@ interface Props {
   onLongPress?: () => void;
 }
 
-export default function NoteCard({ children, onPress, onLongPress }: Props) {
+export default forwardRef(function NoteCard(
+  { children, onPress, onLongPress }: Props,
+  _ref,
+) {
   return (
     <TouchableOpacity
       onPress={onPress}
@@ -22,7 +26,7 @@ export default function NoteCard({ children, onPress, onLongPress }: Props) {
       {children}
     </TouchableOpacity>
   );
-}
+});
 
 const styles = StyleSheet.create({
   card: {
