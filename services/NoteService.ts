@@ -201,7 +201,7 @@ export class NoteService {
     return this.updateNote<TextNote>(Object.assign(note, { type: "text" }));
   }
 
-  private static async getImagePath(blob: Blob) {
+  private static async getObjectLink(blob: Blob) {
     const imageId = uuidV4();
 
     const image = await StorageService.uploadFile(
@@ -213,28 +213,25 @@ export class NoteService {
   }
 
   public static async createImageNote(
-    note: Omit<ImageNote, "id" | "image">,
+    note: Omit<ImageNote, "id" | "content">,
     image: Blob,
   ) {
     return await this.createNote<ImageNote>(
       Object.assign(note, {
         type: "image",
-        content: await this.getImagePath(image),
+        content: await this.getObjectLink(image),
       }),
     );
   }
 
-  public static async updateImageNote(
-    note: Omit<ImageNote, "image">,
-    image?: Blob,
-  ) {
+  public static async updateImageNote(note: ImageNote, image?: Blob) {
     if (image) {
       StorageService.deleteFile(note.content);
 
       return await this.updateNote<ImageNote>(
         Object.assign(note, {
           type: "image",
-          content: await this.getImagePath(image),
+          content: await this.getObjectLink(image),
         }),
       );
     }
@@ -242,6 +239,38 @@ export class NoteService {
     return await this.updateNote<ImageNote>(
       Object.assign(note, {
         type: "image",
+        content: note.content,
+      }),
+    );
+  }
+
+  public static async createAudioNote(
+    note: Omit<AudioNote, "id" | "content">,
+    audio: Blob,
+  ) {
+    return await this.createNote<AudioNote>(
+      Object.assign(note, {
+        type: "audio",
+        content: await this.getObjectLink(audio),
+      }),
+    );
+  }
+
+  public static async updateAudioNote(note: AudioNote, audio?: Blob) {
+    if (audio) {
+      StorageService.deleteFile(note.content);
+
+      return await this.updateNote<AudioNote>(
+        Object.assign(note, {
+          type: "audio",
+          content: await this.getObjectLink(audio),
+        }),
+      );
+    }
+
+    return await this.updateNote<AudioNote>(
+      Object.assign(note, {
+        type: "audio",
         content: note.content,
       }),
     );

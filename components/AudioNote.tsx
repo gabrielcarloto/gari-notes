@@ -1,25 +1,22 @@
 import { StyleSheet, Text, View } from "react-native";
 import NoteCard from "./NoteCard";
 import { Link } from "expo-router";
+import type { AudioNote as AudioNoteProps } from "@/types/Note";
+import AudioRecorderPlayer from "react-native-audio-recorder-player";
 
-interface Props {
-  title: string;
-  content: string;
-}
+export default function AudioNote(props: AudioNoteProps) {
+  const player = new AudioRecorderPlayer();
 
-export default function AudioNote({ title, content }: Props) {
   return (
     <Link
-      href={{ pathname: "/AudioNoteScreen", params: { title, content } }}
+      href={{ pathname: "/AudioNoteScreen", params: { id: props.id } }}
       asChild
       push
     >
       <NoteCard>
         <View style={styles.container}>
-          <Text style={styles.noteTitle}>{title}</Text>
-          <Text style={styles.content}>
-            {content}
-          </Text>
+          <Text style={styles.noteTitle}>{props.title}</Text>
+          <Text style={styles.content}>{player.mmssss(props.duration)}</Text>
         </View>
       </NoteCard>
     </Link>

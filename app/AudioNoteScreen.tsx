@@ -106,6 +106,8 @@ export default function AudioNoteScreen() {
     setAudioState("playing");
     audioRecorderPlayer.addPlayBackListener((e) => {
       setPlaybackPosition(e.currentPosition);
+
+      if (e.isFinished) stopPlaying();
     });
   }
 
@@ -146,7 +148,9 @@ export default function AudioNoteScreen() {
         {audio && (
           <Text>
             {audioState === "playing"
-              ? audioRecorderPlayer.mmssss(playbackPosition) + " / "
+              ? audioRecorderPlayer.mmssss(
+                  Math.min(playbackPosition, noteData.duration!),
+                ) + " / "
               : ""}
             {audioRecorderPlayer.mmssss(noteData.duration!)}
           </Text>
