@@ -122,7 +122,14 @@ export default function AudioNoteScreen() {
       <Stack.Screen options={{ headerShown: false }} />
       <NoteScreen
         defaultTitle="Áudio sem título"
-        onShare={() => {}}
+        onShare={(data) => {
+          const title = data.title ? data.title + "\n\n" : "";
+          return {
+            message: title,
+            fileURL: audio,
+            fileType: "audio/mpeg",
+          };
+        }}
         saved={saved}
         setSaved={setSaved}
         onSaveNote={async (data) => {

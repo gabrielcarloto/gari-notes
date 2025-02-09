@@ -88,7 +88,13 @@ export default function TextNoteScreen() {
       <Stack.Screen options={{ headerShown: false }} />
       <NoteScreen
         defaultTitle="Tarefa sem título"
-        onShare={() => {}}
+        onShare={(data) => {
+          const title = data.title ? data.title + "\n" : "";
+          const reminder = noteData.reminder ? `Data: ${noteData.reminder.toDateString()}\n\n` : "Sem prazo.\n\n";
+          return {
+            message: title + reminder + (noteData.content ?? ""),
+          };
+        }}
         setSaved={setSaved}
         onSaveNote={async (genericData) => {
           const noteObject = {
