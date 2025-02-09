@@ -15,13 +15,20 @@ import Separator from "@/components/Separator";
 import { useNavigation } from "expo-router";
 import { NoteService } from "@/services/NoteService";
 import { Optional } from "@/types/utils";
+import blobToDataURL from "@/utils/file";
+
+import Share from "react-native-share";
 
 type GenericNoteData = Pick<Note, "isInTrash" | "folder"> & { title?: string };
 
 interface Props extends Optional<GenericNoteData> {
   children: React.ReactNode;
   saveNoteButtonText?: string;
-  onShare: (data: Partial<GenericNoteData>) => void;
+  onShare: (data: Partial<GenericNoteData>) => {
+    message: string;
+    fileURL?: string;
+    fileType?: string;
+  };
   onSaveNote: (data: Partial<GenericNoteData>) => Promise<boolean>;
   defaultTitle: string;
   saved: boolean;
@@ -93,6 +100,33 @@ export default function NoteScreen({
       });
   }
 
+  async function handleShare(opts: {
+    message: string;
+    fileURL?: string;
+    fileType?: string;
+  }) {
+    if (opts.fileURL) {
+      const data = await fetch(opts.fileURL);
+      const blob = await data.blob();
+      const dataURL = await blobToDataURL(blob);
+
+      const dataURLStart = "data:" + opts.fileType + ";base64,";
+
+      return await Share.open({
+        message: opts.message,
+        url: opts.fileURL ? dataURLStart + dataURL.split(",")[1] : undefined,
+        type: opts.fileType,
+        filename: opts.fileType
+          ? "file." + opts.fileType.split("/")[1]
+          : undefined,
+      });
+    }
+
+    await Share.open({
+      message: opts.message,
+    });
+  }
+
   return (
     <ScreenContainer containerStyle={{ paddingBottom: 32 }}>
       <TextInput
@@ -150,7 +184,10 @@ export default function NoteScreen({
           >
             {noteData.isInTrash ? "Restaurar" : "Excluir"}
           </Button>
-          <Button onPress={() => onShare(noteData)} style={{ flex: 1 }}>
+          <Button
+            onPress={() => handleShare(onShare(noteData))}
+            style={{ flex: 1 }}
+          >
             Compartilhar
           </Button>
         </View>

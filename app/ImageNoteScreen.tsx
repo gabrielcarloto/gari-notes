@@ -40,7 +40,14 @@ export default function ImageNoteScreen() {
       <Stack.Screen options={{ headerShown: false }} />
       <NoteScreen
         defaultTitle="Nota sem título"
-        onShare={() => {}}
+        onShare={(data) => {
+          const title = data.title ? data.title + "\n\n" : "";
+          return {
+            message: title + (noteData.description ?? ""),
+            fileURL: image,
+            fileType: "image/jpeg",
+          };
+        }}
         saved={saved}
         setSaved={setSaved}
         onSaveNote={async (data) => {
