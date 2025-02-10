@@ -9,6 +9,7 @@ import { router, useFocusEffect } from "expo-router";
 import { GenericNote } from "@/types/Note";
 import AuthGuard from "@/components/AuthGuard";
 import NoteList from "@/components/NoteList";
+import SearchBar from "@/components/SearchBar";
 
 const ADD_BUTTON_SIZE = 48 + 16;
 
@@ -18,16 +19,23 @@ function TasksScreen() {
 
   const [notes, setNotes] = useState<GenericNote[]>([]);
 
+  const [searchText, setSearchText] = useState("");
+
   const getNotes = useCallback(() => {
     NoteService.allTasks().then(setNotes);
   }, []);
+
+  const filteredNotes = notes.filter(note =>
+    note.title.toLowerCase().includes(searchText.toLowerCase())
+  );
 
   useFocusEffect(getNotes);
 
   return (
     <>
+      <SearchBar onSearch={setSearchText} />
       <NoteList
-        notes={notes}
+        notes={filteredNotes}
         footerComponent={<View style={{ height: ADD_BUTTON_SIZE + 24 }} />}
         containerStyle={{ paddingHorizontal: 32 }}
       />
