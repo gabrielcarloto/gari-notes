@@ -85,9 +85,13 @@ export class NoteService {
   }
 
   private static filterTrash(notes: FirestoreNote[], onlyTrashed: boolean) {
-    return notes.filter(
-      (note) => note.trash === onlyTrashed || (!onlyTrashed && !note.trash),
-    );
+    return notes.filter((note) => {
+      if (typeof note.trash === "boolean") {
+        return note.trash === onlyTrashed;
+      }
+
+      return note.trash === String(onlyTrashed);
+    });
   }
 
   public static async allTasks() {
